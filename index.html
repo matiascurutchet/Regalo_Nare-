@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>UNIVERSO MATI Y NARE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;600&family=Cormorant+Garamond:ital,wght@1,300&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ffb3c6;
+            --secondary: #ff809f;
+            --accent: #ffd1dc;
+            --text-glow: 0 0 15px rgba(255, 179, 198, 0.6), 0 0 30px rgba(255, 128, 159, 0.4);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #030102; 
+            font-family: 'Montserrat', sans-serif; 
+            color: white; 
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+
+        /* Pantalla de Inicio Elegante */
+        #intro-screen {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, rgba(30,10,20,0.8) 0%, rgba(0,0,0,1) 100%);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; transition: opacity 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #intro-screen h1 {
+            font-family: 'Cormorant Garamond', serif; font-weight: 300; font-style: italic; font-size: 3.5rem; letter-spacing: 6px; 
+            margin-bottom: 2rem; text-align: center; text-shadow: var(--text-glow); color: var(--accent);
+            opacity: 0; transform: translateY(20px); animation: fadeIn 3s ease forwards 0.5s;
+        }
+
+        #error-msg {
+            font-size: 0.9rem; color: #ff6b6b; margin-bottom: 20px; font-weight: 300; text-align: center; max-width: 80%;
+            display: none; /* Se mostrará si hay error de CORS */
+        }
+
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+        #btn-enter {
+            padding: 12px 45px; font-size: 1rem; font-weight: 300; background: transparent; color: var(--accent);
+            border: 1px solid rgba(255, 179, 198, 0.4); border-radius: 50px; cursor: pointer; transition: all 0.5s ease; 
+            font-family: inherit; letter-spacing: 4px; box-shadow: 0 0 20px rgba(255, 179, 198, 0.1);
+            opacity: 0; animation: fadeIn 3s ease forwards 1.5s;
+        }
+
+        #btn-enter:hover { background: rgba(255, 179, 198, 0.1); border-color: var(--primary); box-shadow: var(--text-glow); transform: scale(1.05); }
+
+        /* Tarjeta de Mensaje (Holográfica) */
+        #message-card {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -40%) scale(0.95);
+            width: 85%; max-width: 450px; max-height: 90vh; padding: 35px 30px 20px;
+            text-align: center; overflow-y: auto; overflow-x: hidden;
+            background: linear-gradient(135deg, rgba(25, 10, 15, 0.7) 0%, rgba(10, 5, 10, 0.9) 100%);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 179, 198, 0.3); border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 30px rgba(255, 179, 198, 0.1);
+            z-index: 50; opacity: 0; pointer-events: none; transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        #message-card.active { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+
+        #card-icon { font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 20px rgba(255,179,198,0.8)); }
+
+        #card-title {
+            position: sticky; top: 0; z-index: 2;
+            font-family: 'Montserrat', sans-serif; font-size: 0.9rem; letter-spacing: 3px;
+            color: var(--primary); margin-bottom: 15px; text-transform: uppercase;
+            background: transparent;
+            padding: 0 0 5px;
+        }
+
+        #card-text { 
+            font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.8rem; line-height: 1.4; 
+            font-weight: 300; margin-bottom: 35px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        #card-media {
+            width: 100%; max-width: 100%; max-height: 60vh; min-height: 200px; margin: 0 auto 25px;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 26px; overflow: hidden; background: rgba(255,255,255,0.03);
+            box-shadow: inset 0 0 25px rgba(255, 179, 198, 0.08);
+        }
+
+        #card-media img,
+        #card-media video {
+            max-width: 100%; max-height: 100%; width: auto; height: auto;
+            display: block; object-fit: contain;
+        }
+
+        #card-media video {
+            max-width: 100%;
+            max-height: 60vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            margin: auto;
+        }
+
+        #btn-close {
+            position: sticky; bottom: 0; z-index: 2;
+            background: rgba(3, 1, 2, 0.94); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8);
+            padding: 10px 30px; border-radius: 30px; cursor: pointer; font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem; letter-spacing: 2px; transition: 0.4s; font-weight: 300;
+            margin: 10px auto 0; display: inline-block;
+        }
+
+        #btn-close:hover { background: rgba(255,255,255,0.05); border-color: #fff; color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+
+        /* Crosshair / Indicador de interacción */
+        #crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.3);
+            z-index: 40; pointer-events: none; transition: 0.3s ease;
+        }
+        #crosshair.active { background: rgba(255,255,255,1); box-shadow: 0 0 15px var(--primary); transform: translate(-50%, -50%) scale(2); }
+    </style>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="intro-screen">
+        <h1>UNIVERSO MATI Y NARE</h1>
+        <p id="error-msg">⚠️ Si ves esto negro y no avanza al darle Explorar, es porque abriste el archivo con doble clic. Debes usar "Live Server" o un servidor local.</p>
+        <button id="btn-enter">EXPLORAR</button>
+    </div>
+
+    <div id="crosshair"></div>
+
+    <div id="message-card">
+        <div id="card-icon">✨</div>
+        <div id="card-title">Lo que me gusta de ti</div>
+        <div id="card-media"></div>
+        <p id="card-text">Mensaje</p>
+        <button id="btn-close">CERRAR</button>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // Evitar que el mensaje de error aparezca si el script carga bien
+        document.getElementById('error-msg').style.display = 'none';
+
+        // ==========================================
+        // ⚙️ DATOS INTERACTIVOS MANUALES
+        // ==========================================
+        const interactiveDataTemplates = [
+            {
+                id: 0,
+                emoji: '🫂💖',
+                color: '#ffb3c6',
+                title: 'Cuando te dejabas abrazar',
+                text: 'Me acuerdo q yo casi q te obligaba a estar asi JAJAJAJ, no se xq te dejabas vos tambien.',
+                media: 'img/foto1.jpg.jpeg'
+            },
+            {
+                id: 1,
+                emoji: '💖',
+                color: '#ff809f',
+                title: 'Cuando te d',
+                text: 'Tu voz es la banda sonora perfecta de mis días.',
+                media: 'videos/video1.mp4'
+            },
+            {
+                id: 2,
+                emoji: '🌸',
+                color: '#ffd1dc',
+                title: 'Dedos',
+                text: 'De esto me acuerdo y parece q fue ayer y ya paso tanto tiempo creo q es el primer regalo q me hiciste,es muy lindo recuerdo.',
+                media: 'img/foto2.jpg.jpeg'
+            },
+            {
+                id: 3,
+                emoji: '🌟',
+                color: '#ffffff',
+                title: 'Calma cósmica',
+                text: 'Cuando estás aquí todo se vuelve más sereno y claro.',
+                media: 'videos/video2.mp4'
+            },
+            {
+                id: 4,
+                emoji: '🐕',
+                color: '#ff99b3',
+                title: 'Lebron',
+                text: 'Lo q me tente viendo esta ft, esta todo gordito JAJAJAJJA.',
+                media: 'img/foto3.jpg.jpeg'
+            },
+            {
+                id: 5,
+                emoji: '💗',
+                color: '#ffb3c6',
+                title: 'Viaje infinito',
+                text: 'Cada momento contigo se siente como una aventura sin fin.',
+                media: 'videos/video3.mp4'
+            },
+            {
+                id: 6,
+                emoji: '👀',
+                color: '#ff809f',
+                title: 'Acoso',
+                text: 'Esta foto me hace sentir q vigilas lo q escribo.',
+                media: 'img/foto4.jpg.jpeg'
+            },
+            {
+                id: 7,
+                emoji: '🌹',
+                color: '#ffd1dc',
+                title: 'Eterna primavera',
+                text: 'Contigo todo florece, hasta los sueños más pequeños.',
+                media: 'videos/video4.mp4'
+            },
+            {
+                id: 8,
+                emoji: '💞',
+                color: '#ffffff',
+                title: 'los terribles',
+                text: 'Estas fotos de chiquitos me matan de ternura.',
+                media: 'img/foto5.jpg.jpeg'
+            },
+            {
+                id: 9,
+                emoji: '💌',
+                color: '#ff99b3',
+                title: 'Mensaje del cosmos',
+                text: 'Cada palabra tuya llega como un susurro del universo.',
+                media: 'videos/video5.mp4'
+            },
+            {
+                id: 10,
+                emoji: '👩🏻‍❤️‍👨🏻',
+                color: '#c00030',
+                title: 'Esta foto de nosotros chiquitos me encanca',
+                text: 'Que cagadas hubieramos echo si nos conociamos asi.',
+                media: 'img/foto6.jpg.jpeg' 
+            },
+            {
+                id: 11,
+                emoji: '🐈‍⬛',
+                color: '#ffb3c6',
+                title: 'Panadero',
+                text: 'Fotos asi debo tener miles pero no las encuentre.',
+                media: 'img/foto7.jpg.jpeg'
+            },
+            {
+                id: 12,
+                emoji: '🌈',
+                color: '#ff809f',
+                title: 'Los terribles',
+                text: 'La nare chiquita es re tiernaa, yo estoy re duro JAJAJAJ.',
+                media: 'img/foto8.jpg.jpeg'
+            },
+            {
+                id: 13,
+                emoji: '☠️',
+                color: '#ffd1dc',
+                title: 'Alguna joda',
+                text: 'La cara de matados de los dos es impresionante, encima dsp paso uno con comida y nos pusimo a comer JAJAJA.',
+                media: 'img/foto9.jpg.jpeg'
+            },
+            {
+                id: 14,
+                emoji: '🪩',
+                color: '#ffffff',
+                title: 'Egresado',
+                text: 'Nada para decir, pero q pedo q te agarraste hdp.',
+                media: 'img/foto10.jpg.jpeg'
+            },
+            {
+                id: 15,
+                emoji: '🩶🖤',
+                color: '#ff99b3',
+                title: '"Familia feliz"',
+                text: 'De las pocas fotos q salimos bien JAJJAJ.',
+                media: 'img/foto11.jpg.jpeg'
+            },
+            {
+                id: 16,
+                emoji: '🎒',
+                color: '#ffb3c6',
+                title: 'Primaria',
+                text: 'Mira si nos conociamos ahí, desastre hubieramos echo.',
+                media: 'img/foto12.jpg.jpeg'
+            },
+            {
+                id: 17,
+                emoji: '🫂🪩',
+                color: '#ff809f',
+                title: 'Egresado',
+                text: 'Foto antes del desastre.',
+                media: 'img/foto13.jpg.jpeg'
+            },
+            {
+                id: 18,
+                emoji: '🎂',
+                color: '#ffd1dc',
+                title: 'Cumple sorpresa',
+                text: 'Creo q esto fue de cuando te hicimos la sorpresa en tu casa.',
+                media: 'img/foto14.jpg.jpeg'
+            },
+            {
+                id: 19,
+                emoji: '❤️‍🩹✨',
+                color: '#ffffff',
+                title: 'Tatuaje',
+                text: 'Es el regalo mas hermoso q me hicieron te juro q me encantó,no hay palabra q describa lo mucho que me gustó, gracias negra🖤.',
+                media: 'img/foto15.jpg.jpeg'
+            },
+            {
+                id: 20,
+                emoji: '🖤🤍',
+                color: '#ff99b3',
+                title: '1° cumple juntos(creo)',
+                text: 'Creo q este fue el primer cumple q pasamos juntos desde q nos concimos.',
+                media: 'img/foto16.jpg.jpeg'
+            },
+            {
+                id: 21,
+                emoji: '🤍🖤',
+                color: '#ffb3c6',
+                title: '1° cumple juntos(creo)',
+                text: 'No es la misma ft x las dudas JAJAJ.',
+                media: 'img/foto17.jpg.jpeg'
+            },
+            {
+                id: 22,
+                emoji: '🩶',
+                color: '#ff809f',
+                title: 'Cumple sorpresa',
+                text: 'Esta tmp es la misma ft q antes, se parecen nomas.',
+                media: 'img/foto18.jpg.jpeg'
+            },
+            {
+                id: 23,
+                emoji: '🏫',
+                color: '#ffd1dc',
+                title: 'El principio del grupo',
+                text: 'Ni me acuerdo como nos conocimos pero de un dia para otro nos sentabamos todos juntos JAJAJ.',
+                media: 'img/foto19.jpg.jpeg'
+            },
+            {
+                id: 24,
+                emoji: '🍪🍴',
+                color: '#ffffff',
+                title: 'Taller',
+                text: 'Como viviamos comieno y boludeando en taller JAJAJAJ.',
+                media: 'img/foto20.jpg.jpeg'
+            },
+            {
+                id: 25,
+                emoji: '🖍️✏️',
+                color: '#ff99b3',
+                title: 'Cartuchera',
+                text: 'Sigo sin entender como no te hacia mal la cabeza tenerla asi JAJAJAJ.',
+                media: 'img/foto21.jpg.jpeg'
+            },
+            {
+                id: 26,
+                emoji: '🥥❤️',
+                color: '#c00030',
+                title: 'Egresado',
+                text: 'Otra ft mas antes de q te fueras a dormir JAJAJA.',
+                media: 'img/foto22.jpg.jpeg' 
+            },
+            {
+                id: 27,
+                emoji: '🍽️',
+                color: '#ffb3c6',
+                title: 'Comida',
+                text: 'Que raro nosotros juntandonos a comer.',
+                media: 'img/foto23.jpg.jpeg'
+            },
+            {
+                id: 28,
+                emoji: '💜',
+                color: '#ff809f',
+                title: 'Promo',
+                text: 'Un dia normal de nostoros en 5°.',
+                media: 'img/foto24.jpg.jpeg'
+            },
+            {
+                id: 29,
+                emoji: '📝',
+                color: '#ffd1dc',
+                title: 'Promo',
+                text: 'Mira esos carteles JAJAJAJ.',
+                media: 'img/foto25.jpg.jpeg'
+            },
+            {
+                id: 30,
+                emoji: '🎇',
+                color: '#ffffff',
+                title: 'No se ve nada',
+                text: 'Toda borrosa la foto JAJAJJA.',
+                media: 'img/foto26.jpg.jpeg'
+            },
+            {
+                id: 31,
+                emoji: '🍾',
+                color: '#ff99b3',
+                title: 'Vs y el amor de tu vida',
+                text: 'Pocas veces se te ve tan feliz como con esa botella hdp.',
+                media: 'img/foto27.jpg.jpeg'
+            },
+            {
+                id: 32,
+                emoji: '🐎',
+                color: '#ffb3c6',
+                title: 'Dia de campo',
+                text: 'Fue un re lindo dia,me encanto.',
+                media: 'img/foto28.jpg.jpeg'
+            },
+            {
+                id: 33,
+                emoji: '🥷🏻',
+                color: '#ff809f',
+                title: 'Dia de campo',
+                text: 'Una foto normal del grupo es esto JAJAJ.',
+                media: 'img/foto29.jpg.jpeg'
+            },
+            {
+                id: 34,
+                emoji: '🤎',
+                color: '#ffd1dc',
+                title: 'Dia de campo',
+                text: 'Se intento tener una foto decente, pero no se pudo JAJAJ.',
+                media: 'img/foto30.jpg.jpeg'
+            },
+            {
+                id: 35,
+                emoji: '🌟🤎',
+                color: '#ffffff',
+                title: 'Dia de campo',
+                text: 'Comimos tierra a dos manos en ese viaje.',
+                media: 'img/foto31.jpg.jpeg'
+            },
+        ];
+
+        const interactiveData = Array.from({ length: 80 }, (_, i) => {
+            const template = interactiveDataTemplates[i % interactiveDataTemplates.length];
+            return {
+                ...template,
+                id: i
+            };
+        });
+
+        // Configuración de la escena
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x030102, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 40, 120);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; controls.dampingFactor = 0.03;
+        controls.autoRotate = true; controls.autoRotateSpeed = 0.2;
+        controls.maxDistance = 350; controls.minDistance = 25;
+
+        // Post-processing Cinematico
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            2.0, 0.8, 0.1 // Intensidad moderada para no cegar los emojis
+        );
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene); composer.addPass(bloomPass);
+
+        // Agujero Negro y Halo
+        const bhGeometry = new THREE.SphereGeometry(12, 64, 64);
+        const bhMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const blackHole = new THREE.Mesh(bhGeometry, bhMaterial);
+        scene.add(blackHole);
+
+        // Disco de Acreción (GLSL)
+        const diskGeometry = new THREE.PlaneGeometry(100, 100, 128, 128);
+        const diskShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: { time: { value: 0.0 }, color1: { value: new THREE.Color(0xffd1dc) }, color2: { value: new THREE.Color(0xff5522) } },
+            vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+            fragmentShader: `
+                uniform float time; uniform vec3 color1; uniform vec3 color2; varying vec2 vUv;
+                float rand(vec2 co){ return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453); }
+                void main() {
+                    vec2 p = -1.0 + 2.0 * vUv; float r = length(p); float a = atan(p.y, p.x);
+                    if(r < 0.25) discard;
+                    float f = sin(r * 30.0 - time * 2.0 + a * 4.0) + sin(r * 50.0 - time * 4.0 + a * 8.0) * 0.5;
+                    vec3 col = mix(color2, color1, f * 0.5 + 0.5);
+                    float glow = 0.08 / (r - 0.2); float edgeFade = smoothstep(1.0, 0.3, r);
+                    float alpha = edgeFade * glow * (f * 0.5 + 0.8) + (rand(p * time * 0.001) * 0.1);
+                    gl_FragColor = vec4(col * alpha * 1.5, alpha);
+                }
+            `,
+            transparent: true, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+        });
+        const accretionDisk = new THREE.Mesh(diskGeometry, diskShaderMaterial);
+        accretionDisk.rotation.x = Math.PI / 2.1; 
+        scene.add(accretionDisk);
+
+        // Estrellas de fondo
+        const starGeo = new THREE.BufferGeometry(); const starPos = new Float32Array(15000 * 3);
+        for(let i = 0; i < 15000; i++) {
+            const r = 25 + Math.pow(Math.random(), 2) * 250; const theta = Math.random() * 2 * Math.PI; const phi = Math.acos((Math.random() * 2 - 1) * 0.1); 
+            starPos[i*3] = r * Math.sin(phi) * Math.cos(theta); starPos[i*3+1] = r * Math.cos(phi) * (Math.random() * 0.6); starPos[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const starMat = new THREE.PointsMaterial({ size: 0.6, color: 0xffe6ea, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+        const stars = new THREE.Points(starGeo, starMat); scene.add(stars);
+
+        // ==========================================
+        // 💖 CONVERTIR EMOJIS EN HOLOGRAMAS LEGIBLES (NUEVO MÉTODO)
+        // ==========================================
+        const interactiveSprites = [];
+
+        function createEmojiHologramSprite(emojiText, colorHex) {
+            // Alta resolución para evitar pixelado
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            // 1. Dibujar un "aura" holográfica brillante por detrás
+            const gradient = ctx.createRadialGradient(256, 256, 30, 256, 256, 220);
+            gradient.addColorStop(0, colorHex); // Color sólido al centro
+            gradient.addColorStop(0.5, colorHex + '66'); // Semi transparente
+            gradient.addColorStop(1, 'rgba(0,0,0,0)'); // Borde invisible
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 512);
+
+            // 2. Dibujar el Emoji en el centro para que se vea perfectamente
+            ctx.font = '160px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.8)'; // Pequeña sombra para dar relieve
+            ctx.shadowBlur = 20;
+            
+            // Llenado (aunque es un emoji, algunos navegadores necesitan esto)
+            ctx.fillStyle = '#ffffff'; 
+            ctx.fillText(emojiText, 256, 275); 
+
+            // Crear Textura
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.colorSpace = THREE.SRGBColorSpace; // CRÍTICO: Mantiene los colores vivos
+            
+            // Usar NormalBlending para que el Emoji no pierda sus colores originales
+            const material = new THREE.SpriteMaterial({ 
+                map: texture, 
+                transparent: true, 
+                blending: THREE.NormalBlending, 
+                depthWrite: false
+            });
+
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(16, 16, 1); 
+            return sprite;
+        }
+
+        // Crear los 80 emojis en el espacio
+        interactiveData.forEach((data, index) => {
+            const sprite = createEmojiHologramSprite(data.emoji, data.color);
+            
+            const angle = (index / interactiveData.length) * Math.PI * 4 + Math.random(); 
+            const distance = 40 + (Math.random() * 100); 
+            const height = (Math.random() - 0.5) * 60;
+            
+            sprite.position.set(Math.cos(angle) * distance, height, Math.sin(angle) * distance);
+
+            sprite.userData = {
+                data: data, angle: angle, distance: distance, baseY: height,
+                speed: 0.001 + Math.random() * 0.002, bobSpeed: 1 + Math.random() * 2, originalScale: 16
+            };
+
+            scene.add(sprite);
+            interactiveSprites.push(sprite);
+        });
+
+        // Interacción (Clics y Raycaster)
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const crosshair = document.getElementById('crosshair');
+        const cardModal = document.getElementById('message-card');
+        
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        window.addEventListener('click', () => {
+            if (cardModal.classList.contains('active')) return;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactiveSprites);
+
+            if (intersects.length > 0) {
+                const sprite = intersects[0].object;
+                const data = sprite.userData.data;
+                
+                // Efecto de "latido" al hacer clic
+                sprite.scale.set(24, 24, 1);
+                setTimeout(() => sprite.scale.set(16, 16, 1), 300);
+
+                // Mostrar tarjeta
+                document.getElementById('card-icon').innerText = data.emoji;
+                document.getElementById('card-icon').style.textShadow = `0 0 20px ${data.color}`;
+                document.getElementById('card-title').innerText = data.title;
+                document.getElementById('card-text').innerText = data.text;
+
+                const mediaContainer = document.getElementById('card-media');
+                mediaContainer.innerHTML = '';
+                if (data.media && data.media.toLowerCase().endsWith('.mp4')) {
+                    const video = document.createElement('video');
+                    video.src = data.media;
+                    video.controls = true;
+                    video.autoplay = true;
+                    video.muted = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    mediaContainer.appendChild(video);
+                } else if (data.media) {
+                    const image = document.createElement('img');
+                    image.src = data.media;
+                    image.alt = data.title;
+                    mediaContainer.appendChild(image);
+                }
+
+                cardModal.classList.add('active');
+            }
+        });
+
+        document.getElementById('btn-close').addEventListener('click', () => cardModal.classList.remove('active'));
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            controls.update();
+            diskShaderMaterial.uniforms.time.value = elapsedTime;
+            stars.rotation.y = elapsedTime * 0.005;
+
+            // Animar Sprites
+            interactiveSprites.forEach((sprite) => {
+                const ud = sprite.userData;
+                ud.angle += ud.speed;
+                sprite.position.x = Math.cos(ud.angle) * ud.distance;
+                sprite.position.z = Math.sin(ud.angle) * ud.distance;
+                sprite.position.y = ud.baseY + Math.sin(elapsedTime * ud.bobSpeed + ud.angle) * 3;
+                
+                // Pulsación luminosa sutil
+                const pulse = ud.originalScale + Math.sin(elapsedTime * 3 + ud.angle) * 1.5;
+                if(sprite.scale.x < 20) sprite.scale.set(pulse, pulse, 1); // No sobreescribir el click
+            });
+
+            // Hover effects
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactiveSprites);
+            if(intersects.length > 0) {
+                crosshair.classList.add('active'); document.body.style.cursor = 'pointer';
+            } else {
+                crosshair.classList.remove('active'); document.body.style.cursor = 'default';
+            }
+
+            composer.render();
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        document.getElementById('btn-enter').addEventListener('click', () => {
+            const intro = document.getElementById('intro-screen'); intro.style.opacity = 0;
+            setTimeout(() => intro.style.display = 'none', 2500);
+            
+            const targetZ = camera.position.z; camera.position.z = targetZ + 100;
+            const introInterval = setInterval(() => {
+                camera.position.z -= (camera.position.z - targetZ) * 0.05;
+                if(Math.abs(camera.position.z - targetZ) < 0.1) clearInterval(introInterval);
+            }, 16);
+        });
+
+        animate();
+    </script>
+
+    <!-- Reproductor de música flotante (Nare) -->
+    <style>
+        .nare-music-player{position:fixed;top:12px;left:50%;transform:translateX(-50%);width:72%;max-width:420px;height:100px;z-index:25;display:flex;justify-content:center;align-items:center;pointer-events:auto}
+        .nare-player-inner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 14px;box-sizing:border-box;position:relative;background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(12px) saturate(140%);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(0,0,0,0.6), 0 2px 6px rgba(255,179,198,0.02);color:#fff;border-radius:20px}
+        .nare-title{font-family:'Cormorant Garamond', serif;font-style:italic;font-weight:300;font-size:0.9rem;color:var(--accent);text-shadow:0 2px 12px rgba(0,0,0,0.6);max-width:380px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;margin-bottom:6px;width:100%;text-align:center;line-height:1.2;}
+        .nare-progress-wrap{width:100%;display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+        .nare-progress{height:6px;background:rgba(255,255,255,0.04);border-radius:10px;overflow:hidden;cursor:pointer}
+        .nare-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--secondary));box-shadow:0 4px 18px rgba(255,128,159,0.25)}
+        .nare-time{font-size:10px;color:rgba(255,255,255,0.7);display:flex;justify-content:center;gap:4px}
+        .nare-controls{display:flex;align-items:center;justify-content:center;gap:8px}
+        .nare-btn{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.06);color:#fff;padding:6px;border-radius:8px;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px}
+        .nare-btn:active{transform:scale(0.98)}
+        .nare-add{background:transparent;border:1px dashed rgba(255,255,255,0.06);padding:4px 8px;border-radius:8px;color:rgba(255,255,255,0.9);cursor:pointer;font-size:11px}
+        .nare-add input{display:none}
+
+        /* Mobile */
+        @media (max-width:520px){
+            .nare-music-player{top:8px;height:100px;width:80%;max-width:300px;left:50%;transform:translateX(-50%)}
+            .nare-player-inner{padding:8px 10px;border-radius:20px}
+            .nare-title{font-size:0.85rem;max-width:260px}
+            .nare-btn{width:28px;height:28px;font-size:12px;padding:4px}
+            .nare-add{padding:3px 6px;font-size:10px}
+        }
+    </style>
+
+    <div class="nare-music-player" id="nare-player" aria-label="Reproductor de música">
+        <audio id="nare-audio" preload="metadata"></audio>
+        <div class="nare-player-inner">
+            <div class="nare-title" id="nare-title">Playlist vacía</div>
+
+            <div class="nare-progress-wrap">
+                <div id="nare-progress" class="nare-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div id="nare-progress-fill" class="nare-progress-fill"></div></div>
+                <div class="nare-time"><span id="nare-current">0:00</span> / <span id="nare-duration">0:00</span></div>
+            </div>
+
+            <div class="nare-controls">
+                <button id="nare-prev" class="nare-btn" aria-label="Anterior">⏮</button>
+                <button id="nare-play" class="nare-btn" aria-label="Reproducir">▶</button>
+                <button id="nare-next" class="nare-btn" aria-label="Siguiente">⏭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            const audio = document.getElementById('nare-audio');
+            const btnPlay = document.getElementById('nare-play');
+            const btnNext = document.getElementById('nare-next');
+            const btnPrev = document.getElementById('nare-prev');
+            const titleEl = document.getElementById('nare-title');
+            const progress = document.getElementById('nare-progress');
+            const progressFill = document.getElementById('nare-progress-fill');
+            const currentEl = document.getElementById('nare-current');
+            const durationEl = document.getElementById('nare-duration');
+
+            let playlist = [
+                { src: 'music/Callejeros - Más Allá.mp3', name: 'Más Allá.mp3' },
+                { src: 'music/Patricio Rey y sus Redonditos de Ricota - El Pibe de los Astilleros.mp3', name: 'El Pibe de los Astilleros.mp3' },
+                { src: 'music/Patricio Rey y sus Redonditos de Ricota - Nuestro Amo Juega al Esclavo.mp3', name: 'Nuestro Amo Juega al Esclavo.mp3' },
+                { src: 'music/Rata Blanca - Mujer Amante.mp3', name: 'Mujer Amante.mp3' }
+            ];
+            let currentIndex = 0;
+            let isPlaying = false;
+
+            function formatTime(sec){
+                if(isNaN(sec)) return '0:00';
+                const s = Math.floor(sec%60).toString().padStart(2,'0');
+                const m = Math.floor(sec/60);
+                return `${m}:${s}`;
+            }
+
+            function updateUI(){
+                const item = playlist[currentIndex];
+                titleEl.textContent = item ? item.name : 'Playlist vacía';
+                const progressValue = audio.currentTime / (audio.duration || 1);
+                progressFill.style.width = `${(progressValue*100).toFixed(2)}%`;
+                currentEl.textContent = formatTime(audio.currentTime);
+                durationEl.textContent = isNaN(audio.duration) ? '0:00' : formatTime(audio.duration);
+                document.getElementById('nare-player').setAttribute('data-playing', isPlaying? '1' : '0');
+                btnPlay.textContent = isPlaying ? '⏸' : '▶';
+            }
+
+            function setTrack(index, autoPlay = true){
+                if(!playlist.length) return;
+                currentIndex = (index + playlist.length) % playlist.length;
+                const item = playlist[currentIndex];
+                audio.src = item.src;
+                audio.load();
+                isPlaying = false;
+                updateUI();
+                if(autoPlay){
+                    audio.play().then(() => { isPlaying = true; updateUI(); }).catch(() => {});
+                }
+            }
+
+            btnPlay.addEventListener('click', ()=>{
+                if(!playlist.length) return;
+                if(audio.paused){ audio.play(); isPlaying = true; } else { audio.pause(); isPlaying = false; }
+                updateUI();
+            });
+
+            btnNext.addEventListener('click', ()=>{ if(playlist.length) setTrack(currentIndex+1); });
+            btnPrev.addEventListener('click', ()=>{ if(playlist.length) setTrack(currentIndex-1); });
+
+            audio.addEventListener('timeupdate', ()=>{
+                const p = audio.currentTime / (audio.duration || 1);
+                progressFill.style.width = `${(p*100).toFixed(2)}%`;
+                currentEl.textContent = formatTime(audio.currentTime);
+                durationEl.textContent = isNaN(audio.duration) ? '0:00' : formatTime(audio.duration);
+            });
+
+            audio.addEventListener('play', ()=>{ isPlaying = true; updateUI(); });
+            audio.addEventListener('pause', ()=>{ isPlaying = false; updateUI(); });
+            audio.addEventListener('ended', ()=>{ if(playlist.length) setTrack(currentIndex+1); });
+
+            progress.addEventListener('click', (e)=>{
+                const rect = progress.getBoundingClientRect();
+                const x = e.clientX - rect.left; const p = x / rect.width; audio.currentTime = (audio.duration || 0) * p;
+            });
+
+            audio.addEventListener('loadedmetadata', updateUI);
+
+            // Inicialización
+            (function init(){
+                if(playlist.length){
+                    setTrack(0, false);
+                }
+                updateUI();
+            })();
+
+            // Limpiar objectURLs al salir
+            window.addEventListener('beforeunload', ()=>{
+                playlist.forEach(it=>{ if(it && it.isObjectURL) URL.revokeObjectURL(it.src); });
+            });
+        })();
+    </script>
+
+</body>
+</html>
