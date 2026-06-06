@@ -135,6 +135,22 @@
             }
         }
     </script>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Un universo especial creado para celebrar nuestro amor">
+    <meta name="theme-color" content="#ffb3c6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Universo Mati & Nare">
+    <link rel="apple-touch-icon" href="/img/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/icon-192x192.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="shortcut icon" href="/img/icon-192x192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Universo Mati & Nare">
+    
+    <!-- Script de Debug para PWA (desarrollo) -->
+    <script src="/pwa-debug.js"></script>
 </head>
 <body>
 
@@ -846,6 +862,54 @@
                 playlist.forEach(it=>{ if(it && it.isObjectURL) URL.revokeObjectURL(it.src); });
             });
         })();
+    </script>
+
+    <!-- Registro del Service Worker para PWA -->
+    <script>
+        // Registrar Service Worker para funcionalidad offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registrado exitosamente:', registration);
+                        
+                        // Escuchar actualizaciones
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    console.log('🔄 Nueva versión disponible. Recargando...');
+                                    if (confirm('Una nueva versión está disponible. ¿Deseas actualizar?')) {
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.error('❌ Error al registrar Service Worker:', error);
+                    });
+            });
+
+            // Permitir instalación de PWA en Android
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                console.log('📱 Evento de instalación capturado. La app se puede instalar.');
+            });
+
+            window.addEventListener('appinstalled', () => {
+                console.log('🎉 PWA instalada con éxito en el dispositivo');
+                deferredPrompt = null;
+            });
+        }
+
+        // Detectar si está en modo standalone (app instalada)
+        if (window.navigator.standalone === true) {
+            console.log('🚀 Ejecutándose como PWA instalada');
+            document.body.classList.add('pwa-mode');
+        }
     </script>
 
 </body>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .heart { fill: #ffb3c6; }
+      .bg { fill: #030102; }
+      .glow { filter: drop-shadow(0 0 15px rgba(255, 179, 198, 0.8)); }
+    </style>
+  </defs>
+  
+  <!-- Fondo -->
+  <rect class="bg" width="512" height="512"/>
+  
+  <!-- Círculo de fondo suave -->
+  <circle cx="256" cy="256" r="220" fill="rgba(255, 179, 198, 0.1)" stroke="#ffb3c6" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Estrellas decorativas -->
+  <g class="glow" opacity="0.7">
+    <circle cx="100" cy="80" r="6" class="heart"/>
+    <circle cx="412" cy="100" r="5" class="heart"/>
+    <circle cx="450" cy="320" r="5" class="heart"/>
+    <circle cx="80" cy="400" r="6" class="heart"/>
+  </g>
+  
+  <!-- Corazón central grande -->
+  <g class="glow">
+    <path class="heart" d="M 256 420 C 120 300 80 240 80 180 C 80 130 120 90 160 90 C 190 90 220 110 256 140 C 292 110 322 90 352 90 C 392 90 432 130 432 180 C 432 240 392 300 256 420 Z" stroke="#ff809f" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Detalles internos del corazón -->
+  <ellipse cx="220" cy="200" rx="25" ry="30" fill="rgba(255, 179, 198, 0.2)"/>
+  <ellipse cx="292" cy="200" rx="25" ry="30" fill="rgba(255, 179, 198, 0.2)"/>
+</svg>
