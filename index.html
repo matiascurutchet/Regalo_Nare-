@@ -632,6 +632,7 @@
 
         window.addEventListener('click', () => {
             if (cardModal.classList.contains('active')) return;
+            if (document.getElementById('floating-panel').classList.contains('active')) return;
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(interactiveSprites);
 
@@ -791,7 +792,7 @@
             padding: 30px 20px 40px;
             box-sizing: border-box;
             transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-            pointer-events: auto;
+            pointer-events: none;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
