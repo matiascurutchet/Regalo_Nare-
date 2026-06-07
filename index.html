@@ -727,6 +727,454 @@
         animate();
     </script>
 
+    <!-- ==========================================
+         🌸 BOTÓN FLOTANTE MINIMALISTA + PANEL MODAL
+         ========================================== -->
+    <script>
+        (function() {
+            // 🎮 Elementos del DOM
+            const floatingBtn = document.getElementById('floating-btn');
+            const floatingPanel = document.getElementById('floating-panel');
+            const floatingOverlay = document.getElementById('floating-panel-overlay');
+            const panelCloseBtn = document.getElementById('panel-close');
+            const optionCards = document.querySelectorAll('.option-card');
+
+            // 🔧 Estado
+            let isPanelOpen = false;
+
+            // 📱 Función: Toggle Panel (abrir/cerrar)
+            function togglePanel() {
+                isPanelOpen = !isPanelOpen;
+                
+                if (isPanelOpen) {
+                    floatingBtn.classList.add('active');
+                    floatingPanel.classList.add('active');
+                    floatingOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    floatingBtn.classList.remove('active');
+                    floatingPanel.classList.remove('active');
+                    floatingOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+
+            // 🔒 Función: Cerrar panel
+            function closePanel() {
+                if (isPanelOpen) {
+                    togglePanel();
+                }
+            }
+
+            // ⭐ Event Listeners
+            floatingBtn.addEventListener('click', togglePanel);
+            panelCloseBtn.addEventListener('click', closePanel);
+            floatingOverlay.addEventListener('click', closePanel);
+
+            // 🎯 Manejar clicks en opciones
+            optionCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const option = card.dataset.option;
+                    handleOptionClick(option);
+                    closePanel();
+                });
+            });
+
+            // 🎪 Función: Manejar opción seleccionada
+            function handleOptionClick(option) {
+                switch(option) {
+                    case 'album':
+                        console.log('📸 Álbum seleccionado');
+                        // Aquí puedes agregar lógica personalizada
+                        // Ej: mostrar galería, hacer scroll, etc.
+                        break;
+                    case 'carta':
+                        console.log('💌 Carta seleccionada');
+                        // Aquí puedes agregar lógica personalizada
+                        break;
+                    case 'playlist':
+                        console.log('🎵 Playlist seleccionada');
+                        // Aquí puedes agregar lógica personalizada
+                        break;
+                }
+            }
+
+            // 📲 Cerrar panel con ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isPanelOpen) {
+                    closePanel();
+                }
+            });
+
+            // 🎚️ Evitar que el scroll del panel cierre el overlay
+            floatingPanel.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // 📱 Soporte para swipe-down para cerrar (mobile)
+            let touchStartY = 0;
+            let touchEndY = 0;
+
+            floatingPanel.addEventListener('touchstart', (e) => {
+                touchStartY = e.changedTouches[0].screenY;
+            }, false);
+
+            floatingPanel.addEventListener('touchend', (e) => {
+                touchEndY = e.changedTouches[0].screenY;
+                handleSwipe();
+            }, false);
+
+            function handleSwipe() {
+                const distance = touchEndY - touchStartY;
+                // Si hace swipe hacia abajo más de 50px, cerrar el panel
+                if (distance > 50 && floatingPanel.scrollTop === 0) {
+                    closePanel();
+                }
+            }
+
+            console.log('✨ Panel flotante inicializado correctamente');
+        })();
+    </script>
+
+    <style>
+        /* 🎨 Botón Flotante - Glassmorphism */
+        .floating-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 179, 198, 0.15), rgba(255, 128, 159, 0.1));
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(255, 128, 159, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            z-index: 30;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .floating-btn:hover {
+            transform: translateY(-6px) scale(1.08);
+            background: linear-gradient(135deg, rgba(255, 179, 198, 0.25), rgba(255, 128, 159, 0.2));
+            box-shadow: 0 12px 40px rgba(255, 128, 159, 0.25), inset 0 0 25px rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .floating-btn:active {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        .floating-btn.active {
+            transform: translateY(-6px) scale(1.08);
+            background: linear-gradient(135deg, rgba(255, 179, 198, 0.3), rgba(255, 128, 159, 0.25));
+        }
+
+        /* 🎭 Panel Flotante - Desplegable desde abajo */
+        .floating-panel {
+            position: fixed;
+            bottom: -400px;
+            right: 0;
+            left: 0;
+            max-width: 100%;
+            width: 100%;
+            max-height: 70vh;
+            background: linear-gradient(180deg, rgba(20, 10, 15, 0.85), rgba(10, 5, 12, 0.92));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 179, 198, 0.25);
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 20px rgba(255, 179, 198, 0.08);
+            z-index: 29;
+            padding: 30px 20px 40px;
+            box-sizing: border-box;
+            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            pointer-events: auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .floating-panel.active {
+            bottom: 0;
+            pointer-events: auto;
+        }
+
+        /* Indicador visual de arrastre (handle) */
+        .panel-handle {
+            width: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+            transition: all 0.3s ease;
+        }
+
+        .floating-panel.active .panel-handle {
+            background: rgba(255, 179, 198, 0.4);
+            height: 5px;
+            width: 60px;
+        }
+
+        /* Contenedor de opciones */
+        .panel-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            padding: 20px 0;
+        }
+
+        /* Tarjeta de opción individual */
+        .option-card {
+            background: linear-gradient(135deg, rgba(255, 179, 198, 0.08), rgba(255, 128, 159, 0.05));
+            border: 1px solid rgba(255, 179, 198, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-decoration: none;
+            color: inherit;
+            min-height: 140px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 179, 198, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            transition: all 0.6s ease;
+            transform: scale(0);
+        }
+
+        .option-card:hover {
+            transform: translateY(-8px);
+            background: linear-gradient(135deg, rgba(255, 179, 198, 0.15), rgba(255, 128, 159, 0.1));
+            border-color: rgba(255, 179, 198, 0.4);
+            box-shadow: 0 12px 30px rgba(255, 128, 159, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .option-card:hover::before {
+            transform: scale(1);
+        }
+
+        .option-card:active {
+            transform: translateY(-4px);
+        }
+
+        .option-icon {
+            font-size: 36px;
+            filter: drop-shadow(0 0 8px rgba(255, 179, 198, 0.3));
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover .option-icon {
+            filter: drop-shadow(0 0 16px rgba(255, 179, 198, 0.6));
+            transform: scale(1.2);
+        }
+
+        .option-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover .option-label {
+            color: #fff;
+            text-shadow: 0 0 12px rgba(255, 179, 198, 0.4);
+        }
+
+        .option-description {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.8rem;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover .option-description {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Botón de cerrar el panel */
+        .panel-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+
+        .panel-close-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Overlay oscuro detrás del panel */
+        .floating-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0);
+            z-index: 28;
+            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            pointer-events: none;
+        }
+
+        .floating-panel-overlay.active {
+            background: rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 640px) {
+            .floating-btn {
+                width: 56px;
+                height: 56px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 26px;
+            }
+
+            .floating-panel {
+                max-height: 80vh;
+                padding: 24px 16px 36px;
+                border-radius: 28px 28px 0 0;
+            }
+
+            .panel-options {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                padding: 16px 0;
+            }
+
+            .option-card {
+                min-height: 130px;
+                padding: 16px;
+                border-radius: 18px;
+            }
+
+            .option-icon {
+                font-size: 32px;
+            }
+
+            .option-label {
+                font-size: 0.9rem;
+            }
+
+            .option-description {
+                font-size: 0.75rem;
+            }
+
+            .panel-close-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .floating-btn {
+                width: 52px;
+                height: 52px;
+                bottom: 16px;
+                right: 16px;
+                font-size: 24px;
+            }
+
+            .floating-panel {
+                max-height: 85vh;
+                padding: 20px 12px 32px;
+            }
+
+            .panel-options {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .option-card {
+                min-height: 120px;
+                padding: 14px;
+            }
+        }
+    </style>
+
+    <!-- HTML: Botón flotante y panel -->
+    <button id="floating-btn" class="floating-btn" title="Abrir menú">✨</button>
+    <div id="floating-panel-overlay" class="floating-panel-overlay"></div>
+    <div id="floating-panel" class="floating-panel">
+        <button id="panel-close" class="panel-close-btn" title="Cerrar menú">✕</button>
+        <div class="panel-handle"></div>
+        
+        <div class="panel-options">
+            <!-- Opción 1: Álbum -->
+            <a href="#album" class="option-card" data-option="album">
+                <div class="option-icon">📸</div>
+                <div class="option-label">Álbum</div>
+                <div class="option-description">Fotos especiales</div>
+            </a>
+
+            <!-- Opción 2: Carta -->
+            <a href="#carta" class="option-card" data-option="carta">
+                <div class="option-icon">💌</div>
+                <div class="option-label">Carta</div>
+                <div class="option-description">Un mensaje</div>
+            </a>
+
+            <!-- Opción 3: Playlist (bonus) -->
+            <a href="#playlist" class="option-card" data-option="playlist">
+                <div class="option-icon">🎵</div>
+                <div class="option-label">Música</div>
+                <div class="option-description">Canciones nuestras</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+
     <!-- Reproductor de música flotante (Nare) -->
     <style>
         .nare-music-player{position:fixed;top:12px;left:50%;transform:translateX(-50%);width:72%;max-width:420px;height:100px;z-index:25;display:flex;justify-content:center;align-items:center;pointer-events:auto}
