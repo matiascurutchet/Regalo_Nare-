@@ -628,7 +628,7 @@
         const RAYCAST_INTERVAL = 120; // ms, throttle raycasting to improve perf
         const crosshair = document.getElementById('crosshair');
         const cardModal = document.getElementById('message-card');
-        const galleryItems = interactiveData
+        window.galleryItems = interactiveData
             .filter(item => item.media && (item.media.toLowerCase().endsWith('.jpg.jpeg') || item.media.toLowerCase().endsWith('.mp4')))
             .map(item => ({
                 type: item.media.toLowerCase().endsWith('.mp4') ? 'video' : 'image',
@@ -1446,8 +1446,8 @@
                 const overlay = document.getElementById('gallery-overlay');
                 overlay.classList.add('active'); overlay.setAttribute('aria-hidden', 'false');
                 populateGrid({
-                    images: galleryItems.filter(item => item.type === 'image'),
-                    videos: galleryItems.filter(item => item.type === 'video')
+                    images: window.galleryItems.filter(item => item.type === 'image'),
+                    videos: window.galleryItems.filter(item => item.type === 'video')
                 });
             }
 
