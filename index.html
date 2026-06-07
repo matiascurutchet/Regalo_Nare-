@@ -730,113 +730,6 @@
     <!-- ==========================================
          🌸 BOTÓN FLOTANTE MINIMALISTA + PANEL MODAL
          ========================================== -->
-    <script>
-        (function() {
-            // 🎮 Elementos del DOM
-            const floatingBtn = document.getElementById('floating-btn');
-            const floatingPanel = document.getElementById('floating-panel');
-            const floatingOverlay = document.getElementById('floating-panel-overlay');
-            const panelCloseBtn = document.getElementById('panel-close');
-            const optionCards = document.querySelectorAll('.option-card');
-
-            // 🔧 Estado
-            let isPanelOpen = false;
-
-            // 📱 Función: Toggle Panel (abrir/cerrar)
-            function togglePanel() {
-                isPanelOpen = !isPanelOpen;
-                
-                if (isPanelOpen) {
-                    floatingBtn.classList.add('active');
-                    floatingPanel.classList.add('active');
-                    floatingOverlay.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    floatingBtn.classList.remove('active');
-                    floatingPanel.classList.remove('active');
-                    floatingOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            }
-
-            // 🔒 Función: Cerrar panel
-            function closePanel() {
-                if (isPanelOpen) {
-                    togglePanel();
-                }
-            }
-
-            // ⭐ Event Listeners
-            floatingBtn.addEventListener('click', togglePanel);
-            panelCloseBtn.addEventListener('click', closePanel);
-            floatingOverlay.addEventListener('click', closePanel);
-
-            // 🎯 Manejar clicks en opciones
-            optionCards.forEach(card => {
-                card.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const option = card.dataset.option;
-                    handleOptionClick(option);
-                    closePanel();
-                });
-            });
-
-            // 🎪 Función: Manejar opción seleccionada
-            function handleOptionClick(option) {
-                switch(option) {
-                    case 'album':
-                        console.log('📸 Álbum seleccionado');
-                        // Aquí puedes agregar lógica personalizada
-                        // Ej: mostrar galería, hacer scroll, etc.
-                        break;
-                    case 'carta':
-                        console.log('💌 Carta seleccionada');
-                        // Aquí puedes agregar lógica personalizada
-                        break;
-                    case 'playlist':
-                        console.log('🎵 Playlist seleccionada');
-                        // Aquí puedes agregar lógica personalizada
-                        break;
-                }
-            }
-
-            // 📲 Cerrar panel con ESC
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && isPanelOpen) {
-                    closePanel();
-                }
-            });
-
-            // 🎚️ Evitar que el scroll del panel cierre el overlay
-            floatingPanel.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-
-            // 📱 Soporte para swipe-down para cerrar (mobile)
-            let touchStartY = 0;
-            let touchEndY = 0;
-
-            floatingPanel.addEventListener('touchstart', (e) => {
-                touchStartY = e.changedTouches[0].screenY;
-            }, false);
-
-            floatingPanel.addEventListener('touchend', (e) => {
-                touchEndY = e.changedTouches[0].screenY;
-                handleSwipe();
-            }, false);
-
-            function handleSwipe() {
-                const distance = touchEndY - touchStartY;
-                // Si hace swipe hacia abajo más de 50px, cerrar el panel
-                if (distance > 50 && floatingPanel.scrollTop === 0) {
-                    closePanel();
-                }
-            }
-
-            console.log('✨ Panel flotante inicializado correctamente');
-        })();
-    </script>
-
     <style>
         /* 🎨 Botón Flotante - Glassmorphism */
         .floating-btn {
@@ -1360,5 +1253,145 @@
         }
     </script>
 
+    <!-- ==========================================
+         💫 BOTÓN FLOTANTE - FUNCIONALIDAD REAL
+         ========================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 🎮 Elementos del DOM
+            const floatingBtn = document.getElementById('floating-btn');
+            const floatingPanel = document.getElementById('floating-panel');
+            const floatingOverlay = document.getElementById('floating-panel-overlay');
+            const panelCloseBtn = document.getElementById('panel-close');
+            const optionCards = document.querySelectorAll('.option-card');
+
+            // 🔧 Estado
+            let isPanelOpen = false;
+
+            // 📱 Función: Toggle Panel (abrir/cerrar)
+            function togglePanel() {
+                isPanelOpen = !isPanelOpen;
+                
+                if (isPanelOpen) {
+                    floatingBtn.classList.add('active');
+                    floatingPanel.classList.add('active');
+                    floatingOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    floatingBtn.classList.remove('active');
+                    floatingPanel.classList.remove('active');
+                    floatingOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+
+            // 🔒 Función: Cerrar panel
+            function closePanel() {
+                if (isPanelOpen) {
+                    togglePanel();
+                }
+            }
+
+            // ⭐ Event Listeners
+            if (floatingBtn) floatingBtn.addEventListener('click', togglePanel);
+            if (panelCloseBtn) panelCloseBtn.addEventListener('click', closePanel);
+            if (floatingOverlay) floatingOverlay.addEventListener('click', closePanel);
+
+            // 🎯 Manejar clicks en opciones
+            optionCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const option = card.dataset.option;
+                    handleOptionClick(option);
+                    closePanel();
+                });
+            });
+
+            // 🎪 Función: Manejar opción seleccionada con FUNCIONALIDAD REAL
+            function handleOptionClick(option) {
+                switch(option) {
+                    case 'album':
+                        console.log('📸 Álbum seleccionado - explorando fotos');
+                        // Desplegar el mensaje-card o hacer scroll
+                        const messageCard = document.getElementById('message-card');
+                        if (messageCard && !messageCard.classList.contains('active')) {
+                            // Si no hay nada abierto, abrir la primera tarjeta
+                            document.getElementById('card-icon').innerText = '📸';
+                            document.getElementById('card-title').innerText = 'EXPLORA NUESTRO ÁLBUM';
+                            document.getElementById('card-text').innerText = 'Haz clic en cualquier estrella/emoji en el universo para ver las fotos y videos. ¡Cada uno tiene una historia especial! 💕';
+                            messageCard.classList.add('active');
+                        }
+                        break;
+                    case 'carta':
+                        console.log('💌 Carta seleccionada - mostrando mensaje');
+                        // Mostrar una carta bonita
+                        const cardForLetter = document.getElementById('message-card');
+                        if (cardForLetter) {
+                            document.getElementById('card-icon').innerText = '💌';
+                            document.getElementById('card-title').innerText = 'UNA CARTA PARA TI';
+                            document.getElementById('card-text').innerText = 'A veces los momentos más especiales son los que compartimos sin decir nada. Solo estar aquí, contigo, mirando las estrellas... eso es todo lo que necesito. Te amo. 🖤';
+                            
+                            const mediaContainer = document.getElementById('card-media');
+                            mediaContainer.innerHTML = '';
+                            
+                            cardForLetter.classList.add('active');
+                        }
+                        break;
+                    case 'playlist':
+                        console.log('🎵 Playlist seleccionada - música lista');
+                        // Hacer scroll hacia el reproductor de música
+                        const narePlayer = document.getElementById('nare-player');
+                        if (narePlayer) {
+                            narePlayer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            // Reproducir automáticamente si está pausado
+                            const btnPlay = document.getElementById('nare-play');
+                            const audio = document.getElementById('nare-audio');
+                            if (audio && audio.paused && btnPlay) {
+                                btnPlay.click();
+                            }
+                        }
+                        break;
+                }
+            }
+
+            // 📲 Cerrar panel con ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isPanelOpen) {
+                    closePanel();
+                }
+            });
+
+            // 🎚️ Evitar que el scroll del panel cierre el overlay
+            if (floatingPanel) {
+                floatingPanel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+
+                // 📱 Soporte para swipe-down para cerrar (mobile)
+                let touchStartY = 0;
+                let touchEndY = 0;
+
+                floatingPanel.addEventListener('touchstart', (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                }, false);
+
+                floatingPanel.addEventListener('touchend', (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    handleSwipe();
+                }, false);
+
+                function handleSwipe() {
+                    const distance = touchEndY - touchStartY;
+                    if (distance > 50 && floatingPanel.scrollTop === 0) {
+                        closePanel();
+                    }
+                }
+            }
+
+            console.log('✨ Panel flotante funcionando correctamente');
+        });
+    </script>
+
 </body>
 </html>
+
