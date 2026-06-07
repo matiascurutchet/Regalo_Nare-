@@ -626,6 +626,7 @@
         let lastRaycastTime = 0;
         const RAYCAST_INTERVAL = 120; // ms, throttle raycasting to improve perf
         const crosshair = document.getElementById('crosshair');
+        let isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 520;
         const cardModal = document.getElementById('message-card');
         
         window.addEventListener('mousemove', (event) => {
@@ -719,12 +720,20 @@
                 crosshair.classList.remove('active'); document.body.style.cursor = 'default';
             }
 
-            composer.render();
+            if (isMobile) {
+                // Fallback faster render on mobile (avoid postprocessing heavy passes)
+                renderer.render(scene, camera);
+            } else {
+                composer.render();
+            }
         }
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+            composer.setSize(window.innerWidth, window.innerHeight);
+            isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 520;
         });
 
         document.getElementById('btn-enter').addEventListener('click', () => {
@@ -1432,29 +1441,45 @@
             async function detectMedia() {
                 const images = [];
                 const videos = [];
-                // Intentar detectar archivos comunes; ajustar rangos según tu carpeta
                 const imgMax = 40;
                 const vidMax = 10;
 
-                // Helper simple con HEAD para verificar existencia
-                async function exists(url) {
-                    try {
-                        const res = await fetch(url, { method: 'HEAD' });
-                        return res.ok;
-                    } catch (e) {
-                        return false;
+                // Build candidate urls
+                const imgUrls = [];
+                for (let i = 1; i <= imgMax; i++) imgUrls.push(`img/foto${i}.jpg.jpeg`);
+                const vidUrls = [];
+                for (let i = 1; i <= vidMax; i++) vidUrls.push(`videos/video${i}.mp4`);
+
+                // Concurrency-limited HEAD checks
+                async function checkUrls(urls, concurrency = 6) {
+                    const results = [];
+                    for (let i = 0; i < urls.length; i += concurrency) {
+                        const batch = urls.slice(i, i + concurrency).map(async (url) => {
+                            try {
+                                const res = await fetch(url, { method: 'HEAD' });
+                                return res.ok ? url : null;
+                            } catch (e) { return null; }
+                        });
+                        const settled = await Promise.all(batch);
+                        settled.forEach(s => { if (s) results.push(s); });
                     }
+                    return results;
                 }
 
-                for (let i = 1; i <= imgMax; i++) {
-                    const url = `img/foto${i}.jpg.jpeg`;
-                    if (await exists(url)) images.push({ type: 'image', src: url });
+                const foundImgs = await checkUrls(imgUrls, 8);
+                const foundVids = await checkUrls(vidUrls, 4);
+
+                // Map to objects with metadata if available in interactiveData
+                function findMetaFor(src) {
+                    const found = interactiveData.find(d => d.media === src);
+                    if (found) return { emoji: found.emoji, title: found.title, description: found.text, color: found.color };
+                    // fallback title from filename
+                    const parts = src.split('/').pop().split('.');
+                    return { emoji: '📷', title: parts[0], description: '', color: '#ffd1dc' };
                 }
 
-                for (let i = 1; i <= vidMax; i++) {
-                    const url = `videos/video${i}.mp4`;
-                    if (await exists(url)) videos.push({ type: 'video', src: url });
-                }
+                foundImgs.forEach(src => images.push(Object.assign({ type: 'image', src }, findMetaFor(src))));
+                foundVids.forEach(src => videos.push(Object.assign({ type: 'video', src }, findMetaFor(src))));
 
                 return { images, videos };
             }
@@ -1488,24 +1513,43 @@
                 }
 
                 items.forEach(it => {
-                    const a = document.createElement('a');
-                    a.href = '#';
-                    a.className = 'gallery-item';
-                    a.dataset.type = it.type;
-                    a.dataset.src = it.src;
-                    a.addEventListener('click', (e) => { e.preventDefault(); openViewer(it); });
+                    const card = document.createElement('div');
+                    card.className = 'gallery-item';
+                    card.dataset.type = it.type;
+                    card.dataset.src = it.src;
+
+                    const mediaWrap = document.createElement('div');
+                    mediaWrap.style.width = '100%'; mediaWrap.style.height = '100%';
 
                     if (it.type === 'image') {
                         const img = document.createElement('img');
-                        img.src = it.src; img.loading = 'lazy'; img.alt = '';
-                        a.appendChild(img);
+                        img.src = it.src; img.loading = 'lazy'; img.alt = it.title || '';
+                        mediaWrap.appendChild(img);
                     } else {
                         const v = document.createElement('video');
                         v.src = it.src; v.preload = 'metadata'; v.muted = true; v.playsInline = true;
-                        a.appendChild(v);
+                        mediaWrap.appendChild(v);
                     }
 
-                    grid.appendChild(a);
+                    const info = document.createElement('div');
+                    info.style.position = 'absolute'; info.style.left = '12px'; info.style.right = '12px';
+                    info.style.bottom = '10px'; info.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.45))';
+                    info.style.padding = '8px'; info.style.borderRadius = '10px'; info.style.display = 'flex'; info.style.flexDirection = 'column'; info.style.gap = '4px';
+                    info.style.backdropFilter = 'blur(6px)'; info.style.webkitBackdropFilter = 'blur(6px)';
+
+                    const title = document.createElement('div'); title.textContent = it.title || '';
+                    title.style.fontFamily = "'Montserrat', sans-serif"; title.style.fontSize = '0.92rem'; title.style.color = '#fff';
+                    const desc = document.createElement('div'); desc.textContent = it.description || '';
+                    desc.style.fontFamily = "'Cormorant Garamond', serif"; desc.style.fontSize = '0.75rem'; desc.style.color = 'rgba(255,255,255,0.85)';
+
+                    info.appendChild(title); info.appendChild(desc);
+
+                    card.appendChild(mediaWrap);
+                    card.appendChild(info);
+
+                    card.addEventListener('click', (e) => { e.preventDefault(); openViewer(it); });
+
+                    grid.appendChild(card);
                 });
             }
 
