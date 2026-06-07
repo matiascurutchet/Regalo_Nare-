@@ -628,8 +628,8 @@
         const RAYCAST_INTERVAL = 120; // ms, throttle raycasting to improve perf
         const crosshair = document.getElementById('crosshair');
         const cardModal = document.getElementById('message-card');
-        window.galleryItems = interactiveData
-            .filter(item => item.media && (item.media.toLowerCase().endsWith('.jpg.jpeg') || item.media.toLowerCase().endsWith('.mp4')))
+        window.galleryItems = interactiveDataTemplates
+            .filter(item => item.media && (item.media.toLowerCase().endsWith('.jpg.jpeg') || item.media.toLowerCase().endsWith('.jpg') || item.media.toLowerCase().endsWith('.jpeg') || item.media.toLowerCase().endsWith('.mp4')))
             .map(item => ({
                 type: item.media.toLowerCase().endsWith('.mp4') ? 'video' : 'image',
                 src: item.media,
