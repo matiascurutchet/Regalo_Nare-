@@ -697,11 +697,17 @@
                 if(sprite.scale.x < 20) sprite.scale.set(pulse, pulse, 1); // No sobreescribir el click
             });
 
-            // Hover effects
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(interactiveSprites);
-            if(intersects.length > 0) {
-                crosshair.classList.add('active'); document.body.style.cursor = 'pointer';
+            // Hover effects (disabled while floating panel is open)
+            const panelEl = document.getElementById('floating-panel');
+            const panelOpen = panelEl && panelEl.classList.contains('active');
+            if (!panelOpen) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(interactiveSprites);
+                if(intersects.length > 0) {
+                    crosshair.classList.add('active'); document.body.style.cursor = 'pointer';
+                } else {
+                    crosshair.classList.remove('active'); document.body.style.cursor = 'default';
+                }
             } else {
                 crosshair.classList.remove('active'); document.body.style.cursor = 'default';
             }
@@ -776,7 +782,7 @@
         /* 🎭 Panel Flotante - Desplegable desde abajo */
         .floating-panel {
             position: fixed;
-            bottom: -400px;
+            bottom: 0;
             right: 0;
             left: 0;
             max-width: 100%;
@@ -791,14 +797,17 @@
             z-index: 29;
             padding: 30px 20px 40px;
             box-sizing: border-box;
-            transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transition: transform 0.45s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s ease;
+            transform: translateY(110%);
+            opacity: 0;
             pointer-events: none;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
 
         .floating-panel.active {
-            bottom: 0;
+            transform: translateY(0);
+            opacity: 1;
             pointer-events: auto;
         }
 
