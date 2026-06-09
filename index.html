@@ -190,7 +190,7 @@
                 id: 0,
                 type: 'image',
                 emoji: '🫂💖',
-                color: '#ffb3c6',
+                color: '#fa9ee3',
                 title: 'Cuando te dejabas abrazar',
                 text: 'Me acuerdo q yo casi q te obligaba a estar asi JAJAJAJ, no se xq te dejabas vos tambien.',
                 media: 'img/foto1.jpg.jpeg'
@@ -654,23 +654,27 @@
             const ctx = canvas.getContext('2d');
 
             // 1. Dibujar un "aura" holográfica brillante por detrás
-            const gradient = ctx.createRadialGradient(256, 256, 30, 256, 256, 220);
-            gradient.addColorStop(0, colorHex); // Color sólido al centro
-            gradient.addColorStop(0.5, colorHex + '66'); // Semi transparente
-            gradient.addColorStop(1, 'rgba(0,0,0,0)'); // Borde invisible
+            const gradient = ctx.createRadialGradient(256, 256, 20, 256, 256, 220);
+            gradient.addColorStop(0, 'rgba(255,255,255,0.45)');
+            gradient.addColorStop(0.15, colorHex);
+            gradient.addColorStop(0.55, colorHex + '88');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 512, 512);
 
             // 2. Dibujar el Emoji en el centro para que se vea perfectamente
-            ctx.font = '160px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+            ctx.font = '180px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.8)'; // Pequeña sombra para dar relieve
-            ctx.shadowBlur = 20;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.9)'; // Pequeña sombra para dar relieve
+            ctx.shadowBlur = 24;
             
             // Llenado (aunque es un emoji, algunos navegadores necesitan esto)
             ctx.fillStyle = '#ffffff'; 
-            ctx.fillText(emojiText, 256, 275); 
+            ctx.fillText(emojiText, 256, 270);
+            ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+            ctx.lineWidth = 4;
+            ctx.strokeText(emojiText, 256, 270);
 
             // Crear Textura
             const texture = new THREE.CanvasTexture(canvas);
@@ -685,7 +689,7 @@
             });
 
             const sprite = new THREE.Sprite(material);
-            sprite.scale.set(16, 16, 1); 
+            sprite.scale.set(18, 18, 1); 
             return sprite;
         }
 
@@ -701,7 +705,7 @@
 
             sprite.userData = {
                 data: data, angle: angle, distance: distance, baseY: height,
-                speed: 0.001 + Math.random() * 0.002, bobSpeed: 1 + Math.random() * 2, originalScale: 16
+                speed: 0.001 + Math.random() * 0.002, bobSpeed: 1 + Math.random() * 2, originalScale: 18
             };
 
             scene.add(sprite);
