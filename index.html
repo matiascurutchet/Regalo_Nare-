@@ -654,25 +654,23 @@
             const ctx = canvas.getContext('2d');
 
             // 1. Dibujar un "aura" holográfica brillante por detrás
-            const gradient = ctx.createRadialGradient(256, 256, 18, 256, 256, 220);
-            gradient.addColorStop(0, 'rgba(255,255,255,0.45)');
-            gradient.addColorStop(0.12, colorHex);
-            gradient.addColorStop(0.35, colorHex + 'ee');
-            gradient.addColorStop(0.62, colorHex + '55');
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            const gradient = ctx.createRadialGradient(256, 256, 30, 256, 256, 220);
+            gradient.addColorStop(0, colorHex); // Color sólido al centro
+            gradient.addColorStop(0.5, colorHex + '66'); // Semi transparente
+            gradient.addColorStop(1, 'rgba(0,0,0,0)'); // Borde invisible
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 512, 512);
 
             // 2. Dibujar el Emoji en el centro para que se vea perfectamente
-            ctx.font = '180px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+            ctx.font = '160px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.shadowColor = colorHex;
-            ctx.shadowBlur = 28;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.8)'; // Pequeña sombra para dar relieve
+            ctx.shadowBlur = 20;
             
             // Llenado (aunque es un emoji, algunos navegadores necesitan esto)
             ctx.fillStyle = '#ffffff'; 
-            ctx.fillText(emojiText, 256, 270);
+            ctx.fillText(emojiText, 256, 275);
 
             // Crear Textura
             const texture = new THREE.CanvasTexture(canvas);
@@ -746,8 +744,8 @@
                 const data = sprite.userData.data;
                 
                 // Efecto de "latido" al hacer clic
-                sprite.scale.set(28, 28, 1);
-                setTimeout(() => sprite.scale.set(sprite.userData.originalScale, sprite.userData.originalScale, 1), 300);
+                sprite.scale.set(24, 24, 1);
+                setTimeout(() => sprite.scale.set(16, 16, 1), 300);
 
                 // Mostrar tarjeta
                 document.getElementById('card-icon').innerText = data.emoji;
