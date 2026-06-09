@@ -798,6 +798,23 @@
                 // Pulsación luminosa sutil
                 const pulse = ud.originalScale + Math.sin(elapsedTime * 3 + ud.angle) * 1.5;
                 if(sprite.scale.x < 20) sprite.scale.set(pulse, pulse, 1); // No sobreescribir el click
+
+                // Reducir el brillo/opacity de los emojis en móvil cuando la cámara se acerca
+                // (evita que el brillo aumente demasiado al acercar la cámara)
+                try {
+                    if (window.innerWidth <= 640) {
+                        const camDist = camera.position.distanceTo(sprite.position);
+                        const minDist = 10; // distancia donde empieza a reducirse
+                        const maxDist = 80; // distancia donde la opacidad vuelve a 1
+                        const t = Math.max(0, Math.min(1, (camDist - minDist) / (maxDist - minDist)));
+                        // opacity entre 0.35 (muy cerca) y 1.0 (lejos)
+                        sprite.material.opacity = 0.35 + (0.65 * t);
+                    } else {
+                        sprite.material.opacity = 1.0;
+                    }
+                } catch (e) {
+                    // En caso de que sprite.material no exista o sea inmutable, ignorar
+                }
             });
 
             // Hover effects (disabled while floating panel is open) with throttling
