@@ -1568,14 +1568,32 @@
                         // Mostrar una carta bonita
                         const cardForLetter = document.getElementById('message-card');
                         if (cardForLetter) {
-                            document.getElementById('card-icon').innerText = '💌';
-                            document.getElementById('card-title').innerText = 'UNA CARTA PARA TI';
-                            document.getElementById('card-text').innerText = 'A veces los momentos más especiales son los que compartimos sin decir nada. Solo estar aquí, contigo, mirando las estrellas... eso es todo lo que necesito. Te amo. 🖤';
-                            
+                            const cardIconEl = document.getElementById('card-icon');
+                            const cardTitleEl = document.getElementById('card-title');
+                            const cardTextEl = document.getElementById('card-text');
+
+                            // Ocultar texto, título e ícono para que sólo quede la imagen
+                            cardIconEl.style.display = 'none';
+                            cardTitleEl.style.display = 'none';
+                            cardTextEl.style.display = 'none';
+
                             const mediaContainer = document.getElementById('card-media');
                             mediaContainer.innerHTML = '';
-                            
+                            // Cambia el nombre del archivo aquí (colócalo en la carpeta img/)
+                            const cartaImg = document.createElement('img');
+                            cartaImg.src = 'img/carta.png';
+                            cartaImg.alt = 'Carta';
+                            cartaImg.style.cursor = 'zoom-in';
+                            cartaImg.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                if (typeof openViewer === 'function') {
+                                    openViewer({ type: 'image', src: cartaImg.src, title: cardTitleEl.innerText || 'Carta' });
+                                }
+                            });
+                            mediaContainer.appendChild(cartaImg);
+
                             cardForLetter.classList.add('active');
+                            cardForLetter.classList.add('full-media');
                         }
                         break;
                     case 'playlist':
