@@ -823,8 +823,14 @@
             }
         });
 
-        document.getElementById('btn-close').addEventListener('click', () => cardModal.classList.remove('active'));
-
+        document.getElementById('btn-close').addEventListener('click', () => {
+            cardModal.classList.remove('active');
+            // Resetear visibilidad para las tarjetas holográficas
+            document.getElementById('card-icon').style.display = '';
+            document.getElementById('card-title').style.display = '';
+            document.getElementById('card-text').style.display = '';
+            cardModal.classList.remove('full-media');
+        });
         const clock = new THREE.Clock();
 
         function animate() {
